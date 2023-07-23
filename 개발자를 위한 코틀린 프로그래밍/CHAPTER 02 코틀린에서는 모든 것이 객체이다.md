@@ -245,3 +245,6 @@ Primitive으로 바뀔 수 있는건 바뀌는게 맞을까요?.?
 val num: Int = 10 // 컴파일 시 Primitive
 val user: User = User() // 컴파일 시 Reference 
 ```
+# 피드백
+- operator fun을 기호가 아닌 함수명으로 작성하는건 null safe call 할 때 좋습니다.
+  - 기호(+, -, /, %) 연산자는 non-null인 경우에만 가능함. 
