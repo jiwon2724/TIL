@@ -260,7 +260,7 @@ for (i in 1..10) {
         continue // 가장 가까운 반복문(순환)으로 이동
     }
 
-		if (i == 7) {
+    if (i == 7) {
         println("break $i")
         break // 가장 가까운 반복문(순환)종료(탈출)
     }
