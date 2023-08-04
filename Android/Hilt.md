@@ -83,6 +83,7 @@ object DataModule {
 - 액티비티에 선언된 `@Inject` 어노테이션이 달린 변수에 대해 DI를 수행함
 - SingletonComponent의 하위 컴포넌트인 ActivityComponent가 생성됨.
     - 이는 `SingletonComponent` 에 생성된 DI Container의 항목을 주입받을 수 있음.
+- `@Inject`어노테이션이 붙은 객체는 ActivityComponent에서 생명주기를 관리함.
 
 ```kotlin
 @AndroidEntryPoint
