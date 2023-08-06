@@ -257,6 +257,9 @@ val a = object : (Int, Int) -> Int {
 1. `invoke` 를 언제 사용해야하나요!? - 사용하는 상황이 있나요!?
 
 단순 널처리에 대한 가독성 때문에 사용인지..?
+```kotlin
+답변 : nullable한 데이터의 가독성 처리. 성능상 문제 없음!
+```
 
 ```kotlin
 fun nullFunc(action: () -> Unit): Long {
@@ -268,3 +271,6 @@ action() == action.invoke()
 ```
 
 2. 함수 자료형 인터페이스와 함수 자료형 상속은 어떤 경우에 사용되나요?.?
+```kotlin
+답변 : 잘 사용하지않음. 보편적으로는 `operator` 키워드를 사용하여 `invoke` 사용함.
+```
