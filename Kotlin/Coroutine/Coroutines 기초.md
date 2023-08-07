@@ -47,6 +47,11 @@ World!
 - `구조화된 동시성` 은 코루틴들이 손실되거나 누수를 일으키지 않도록 함.
     - 바깥 Scope(부모)는 자식 코루틴들이 모두 완료될 때까지 완료되지 못함.
 
+```kotlin
+GlobalScope는 구조화된 동시성의 원칙을 따르지 않음.
+https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-global-scope/
+```
+
 ### 함수 추출해 리펙토링하기
 
 - 일시중단 함수로 코루틴 내부에서 사용되는 로직을 추출할 수 있음.
