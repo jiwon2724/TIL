@@ -29,6 +29,7 @@ override fun getView(position: Int, convertView: View?, parent: ViewGroup): View
 - ViewBinidng, Databinding을 활용.
     - 바인딩 코드가 컴파일 시간 때 생성되므로, id를 탐색할 필요가 없음. 이는 `findViewById` 보다 빠르게 동작함.
 - `ViewHolder` 패턴을 도입.
+  - `ViewHolder` 패턴은 View의 객체를 ViewHolder에 보관하고, `findViewById`호출을 줄여 성능개선한 패턴임.
 
 ```kotlin
 위와 같은 방법으로 ListView의 View 렌더링 방식은 성능 향상이 가능함.
