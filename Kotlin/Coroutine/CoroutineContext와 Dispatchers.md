@@ -202,8 +202,9 @@ Job : BlockingCoroutine{Active}@6d7b4f4c
         println("Now processing of the request is complete")
     }
     ```
-    
-    **여기 이해가 안감 - Job.join()을 사용할 필요가 없다는데 사용하는 이유는?**
+    ```kotlin
+    실행순서를 출력하기 위해 join사용
+    ```
     
     ### 디버깅을 위해 코루틴에 이름 짓기
     
