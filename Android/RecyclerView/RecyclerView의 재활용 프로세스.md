@@ -1,3 +1,5 @@
+# RecyclerView의 재활용 프로세스
+
 ### 동작 원리
 
 1. 데이터 셋(데이터 리스트)에 데이터(아이템)이 보관됨.
@@ -19,34 +21,37 @@ RecyclerView는 모든 아이템에 대해 아이템 뷰를 할당하지 않음.
 
 ### 재활용 프로세스
 
-![스크린샷 2023-08-12 오후 9 44 13](https://github.com/jiwon2724/TIL/assets/70135188/477c8299-8e10-48c7-a864-b6b37ea5a44a)
+![image](https://github.com/jiwon2724/TIL/assets/70135188/9cb35493-579c-4c52-8adb-d604958877e0)
 
 
 1. 스크롤 시 뷰가 보이지 않고 더이상 표시되지 않으면 `Scrap View`가 됨.
 
 ```kotlin
 Scrap View란 부모 RecyclerView에 붙어있지만, 제거되거나 재사용될 수 있는 뷰를 의미함.
+Scrap Heap과 Cache는 다름.
 ```
 
-1. RecyclerView가 스크롤되면서 화면 밖으로 벗어난 뷰는 `Scrap Heap`에 잠시 보관됨.
+2. RecyclerView가 스크롤되면서 화면 밖으로 벗어난 뷰는 `Scrap Heap`에 잠시 보관됨.
     1. `Scrap Heap` : 뷰가 일시적으로 저장되는 공간 
         1. 이는(`Scrap View`) 동일한 레이아웃을 그릴 때 재사용됨.
         2. 즉, 동일한 레이아웃이 재사용 될 때 어댑터를 통하지 않고 레이아웃 매니저로 직접 반환하여 렌더링함.
         3. 화면에 다시 들어올 가능성이 높은 뷰들을 빠르게 다시 화면에 표시하기 위해 임시 보관함.
-2. 새로운 아이템을 표시할 경우 재사용하기 위해 `Recycled Pool` 에서 뷰를 가져옴.
+3. 새로운 아이템을 표시할 경우 재사용하기 위해 `Recycled Pool` 에서 뷰를 가져옴.
     1. `Scrap Heap` 에 오랜시간 머무른 `Scrap View` 들은 `Recycled Pool` 로 옮겨짐.
     2. `Recycled Pool`에 있는 재활용 대기중인 뷰들을 `dirty view` 라고 부름.
         1. 뷰를 표시하기 전에 어댑터에 의해 다시 바인딩 되어야함.
+
 
 ```kotlin
 Recycled Pool이란 오랜시간 사용하지 않은 뷰를 저장하고, 필요할 때 재사용하기 위한 Pool
 ```
 
-1. `dirty view` 를 리바인딩하고, 화면에 재활용되어 렌더링됨.
+
+4. `dirty view` 를 리바인딩하고, 화면에 재활용되어 렌더링됨.
 
 ### RecyclerView의 C**aching 메커니즘**
 
-![image](https://github.com/jiwon2724/TIL/assets/70135188/1f2b8c8e-8f6a-444d-9198-9b6df8a3006e)
+![image](https://github.com/jiwon2724/TIL/assets/70135188/cb0da73f-b266-4309-9efd-00eb3ee2451d)
 
 1. `LayoutManager` 가 `RecyclerView`에 포지션으로 `View` 를 요청함.
 2. `RecyclerView` 는 포지션으로 캐시를 확인하여 있다면 이를 `LayoutManager` 에 반환.
