@@ -92,7 +92,7 @@ Caught ArithmeticException
         joinAll(job, deferred)
     }
     
-    실행결괴
+    실행결과
     CoroutineExceptionHandler got java.lang.AssertionError
     ```
     
@@ -100,6 +100,28 @@ Caught ArithmeticException
     
     - 궁금한 부분 코멘트 남김.
 
+```kotlin
+답변:
+import kotlinx.coroutines.*
+
+val handler = CoroutineExceptionHandler { _, exception ->
+    println("CoroutineExceptionHandler got $exception")
+}
+val testHandler = CoroutineExceptionHandler { _, exception ->
+    println("test got $exception")
+}
+fun main(): Unit = runBlocking {
+    launch(handler) {
+        launch(Job() + testHandler) {
+            throw AssertionError()
+        }
+    }
+}
+```
+- 위 코드에서 내부 launch는 Job을 새로 생성해서 전달하고 있음.
+- 이는 runBlocking으로 생성된 루트 코루틴으로 부터 코루틴 계층에 속하지 않는 코루틴을 생성함.
+  - 즉, 내부에 있는 `launch(Job() + testHandler)`이 루트 코루틴이 됨.
+- `launch(Job() + testHandler)`이 루트 코루틴이므로, 예외는 handler가 아닌 testHandler에서 잡히는게 맞음.
 ### ****Cancellation과 Exceptions****
 
 - 취소는 예외와 밀접하게 연관되어 있음.
