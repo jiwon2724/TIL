@@ -187,3 +187,10 @@ fun fail(message: String): Nothing {
     var length = str?.length ?: 0 // 0
     length = str!!.length // NPE
     ```
+
+# 공통 피드백
+- NaN == NaN은 false이어서 NaN을 판단하려면 isNan()함수를 사용해야함
+- as? String과 as String? 의 차이는?
+  - null허용 여부 차이임.
+- if 안에서 is로 검사하면 smart cast가 되는데 그게 가능한 조건과 불가능한 조건은?
+  - 확정된 분명한 값이 아닐때 불가능, 변경 가능할 여지가 있을때 안됨 by lazy, lateinit, get() 등
