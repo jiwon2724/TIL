@@ -220,6 +220,7 @@ fun main() {
 
 - `map` 이나 `filter` 같은 함수는 컬렉션을 즉시(eagerly)생성한다.
     - 이는 컬렉션 함수를 연쇄하면, 매 단계마다 계산 중간 결과를 새로운 컬렉션에 임시로 담음.
+- 시퀀스는 지연(lazy) 계산임.
 
 ```kotlin
 public inline fun <T> Iterable<T>.filter(predicate: (T) -> Boolean): List<T> {
