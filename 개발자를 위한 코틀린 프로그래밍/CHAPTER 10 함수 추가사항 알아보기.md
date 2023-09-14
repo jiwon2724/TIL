@@ -46,7 +46,7 @@ fun main() {
     val rf = returnFunc()
     println(rf(3, 5))
 
-		// 일급 함수를 자료구조에 저장
+// 일급 함수를 자료구조에 저장
     val map = mutableMapOf<String, (Int, Int) -> Int>()
     map["add"] = ::add
     map["mul"] = ::mul
