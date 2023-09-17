@@ -477,3 +477,14 @@ fun main() {
             - `str?.let { .. } ?: run { ... }`
 - 2, 3번은 질문한 부분이 맞음.
 - 1번은 함수형 프로그래밍 관련된 부분임.
+- 스코프 함수에서 this가 체이닝 되는건 좋지 않음. ex) run{..}.run{..}
+- 널 체크도 let으로 많이하지만, 조금 문제점이 있음.
+```kotlin
+val nickname = name?.let {} ?: "empty"
+name이 null이거나, let 코드블록이 null인 경우 nickname에 empty가 들어감.
+```
+함수 체이닝 or 확실한 경우아니면 
+```kotlin
+val nickname = if ( name != null ) ?? else "emtpy"
+```
+이 방법을 지향해보자.
