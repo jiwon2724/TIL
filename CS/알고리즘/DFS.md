@@ -79,5 +79,5 @@ fun dfsWithRecursion(node: Int, graph: Map<Int, List<Int>>, visited: MutableSet<
 
 ### 시간 복잡도
 
-- O(V+E)
+- O(V+E) → 인접 리스트인 경우
     - 간선 + 노드
