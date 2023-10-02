@@ -1,4 +1,4 @@
-# OSI 7계층(OSI 7Layers), TCPIP Updated 모델
+# OSI 7계층(OSI 7Layers), TCP/IP Updated 모델
 
 ![](images/similarities-and-differences-between-osi-and-tcp-ip-model.png)
 
