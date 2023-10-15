@@ -256,3 +256,23 @@ p.425의 CounterSet 예제처럼 위임을 사용하여 필요함 함수만 재�
 - 위임을 사용하지 않으면 MutableSet의 멤버 함수를 전부 재정의 해야함.
 
 아니면, 다른 경우에도 사용된다면 어떤 느낌으로 사용될까요!?
+
+### 답변
+1. 맞음! thisRef는 델리 게이트 패턴에 제한을 둘 수 있음.
+```kotlin
+class NonNegativeIntDelegate {
+    private var value: Int = 0
+
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): Int {
+        return value
+    }
+
+    operator fun setValue(thisRef: Any?, property: KProperty<*>, newValue: Int) {
+        if (newValue < 0) {
+            throw IllegalArgumentException("Age cannot be negative!")
+        }
+        value = newValue
+    }
+}
+```
+thisRef: Any? Any 타입에 다른 타입을 주면 타입 제한을 걸 수 있음.
