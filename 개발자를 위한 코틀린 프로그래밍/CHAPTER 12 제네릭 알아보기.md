@@ -343,3 +343,28 @@ suspend fun <T : Any> setResult(response: (suspend () -> T)): Result<T> {
 ```
 
 위 같은 규칙을 정의할 때 많이 사용되는지 궁금합니다.
+
+### 멘토님 답변 
+1.
+- 클래스의 정보를 가져오기 위해 사용. ex) 내가 선언한 클래스 안에서 프로퍼티가 뭐 있는지 등등
+- 파싱할 때 GSON 내부동작은 클래스의 인스턴스를 먼저 만듦. 안에 키들이 프로퍼티로 있는지 확인해서 value를 set함.
+- 즉, 클래스 정보나, 클래스를 조작할 때 사용. 프라이빗 타입이나 퍼블릭 리턴 값 등
+
+2. reified는 inline과 함께 사용하지만, 제네릭의 런타임 정보엔 사라짐. 그래서 reified를 붙이는 것.
+이럴때 사용되겠죠?
+```kotlin
+inline fun <reified T> isType(value: Any): Boolean {
+    return value is T
+}
+val x = "Hello"
+println(isType<String>(x))  // 출력: true
+println(isType<Int>(x))     // 출력: false
+
+```
+
+3. 클래스간의 관계정의 등 사용됨. -> 이건 클래스 간의 관계와 더 유연하게 사용하기 위한 설계의 영역인듯.
+
+4. 준형님 질문 : 반공변성으로 읿력을 받아 갱신하는 속성은 왜 비공개(private) 처리를 해야하나?
+- 반공변성은 Consumer의 특징을 가짐. 소비(get)가 아니라, 변수를 수정할 수 있게 만들어야함.
+- 즉, `var`로 설정해줘야 하는데, 이것은 getter, setter 속성을 다 가지므로, private로 선언하여 소비를 할 수 없게 만들고, 생산만 하는 것. 
+
