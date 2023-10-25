@@ -1,5 +1,5 @@
 # 클린한 코드베이스를 위한 코틀린의 5가지 Tips
-해당 포스팅은 https://medium.com/@domen.lanisnik/5-kotlin-tips-for-a-cleaner-codebase-3582f2e4e2af을 번역한 글입니다.
+해당 포스팅은 https://medium.com/@domen.lanisnik/5-kotlin-tips-for-a-cleaner-codebase-3582f2e4e2af 번역한 글입니다.
 
 - 코틀린은 간결한 코드를 쉽게 작성할 수 있는 개념과 구조를 많이 제공한다.
 - 그러나 팀 단위로 작업 시 주요 목표는 읽고, 이해하고, 유지보수에 쉬운 코드를 작성하는 것이다.
