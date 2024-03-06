@@ -167,7 +167,8 @@ fun WaterCounter(modifier: Modifier = Modifier) {
 - 상태가 변경될 때 UI 컴포넌트를 제거하거나 가시성을 변경하는 대신, 특정 상태 조건에서 UI가 어떻게 작동하는지 설명합니다.
 - 리컴포지션이 호출되고 UI가 업데이트되면 컴포저블이 컴포지션을 시작하거나 종료할 수 있습니다.
 
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/17b7261d-8574-4fae-97a1-5f7367a227bc/ed055c90-22a5-47a6-a161-079c45597bb1/Untitled.png)
+![스크린샷 2024-03-05 오후 10 48 23](https://github.com/jiwon2724/TIL/assets/70135188/d903dc22-ad34-4a8c-9bd9-8e7b07b42ec7)
+
 
 - 초기 컴포지션 또는 리컴포지션 동안 Composable 함수가 호출된다면, 우리는 그것이 컴포지션에 존재한다고 말합니다.
 - Composable 함수가 호출되지 않는 경우 예를 들어, 함수가 if 문 내부에서 호출되었지만 조건이 충족되지 않는 경우 그것은 컴포지션에서 결석한 것으로 간주됩니다.
@@ -193,3 +194,81 @@ fun WaterCounter(modifier: Modifier = Modifier) {
 ```
 
 - 상태는 특정 시점에 UI에 어떤 요소가 있는지를 결정합니다.
+
+## 컴포지션의 Remember
+
+- `remember`는 컴포지션에 객체를 저장하고, `remember`가 호출되는 소스 위치가 리컴포지션 중에 다시 호출되지 않으면 객체를 삭제합니다.
+
+```kotlin
+@Composable
+fun WaterCounter(modifier: Modifier = Modifier) {
+   Column(modifier = modifier.padding(16.dp)) {
+       var count by remember { mutableStateOf(0) }
+       if (count > 0) {
+           var showTask by remember { mutableStateOf(true) }
+           if (showTask) {
+               WellnessTaskItem(
+                   onClose = { showTask = false },
+                   taskName = "Have you taken your 15 minute walk today?"
+               )
+           }
+           Text("You've had $count glasses.")
+       }
+
+       Row(Modifier.padding(top = 8.dp)) {
+           Button(onClick = { count++ }, enabled = count < 10) {
+               Text("Add one")
+           }
+           Button(
+               onClick = { count = 0 },
+               Modifier.padding(start = 8.dp)) {
+                   Text("Clear water count")
+           }
+       }
+   }
+}
+```
+
+- `count`, `showTastk` 는 remember 변수입니다.
+- Add one 버튼을 누르면 `count`가 증가하고 리컴포지션이 발생합니다.
+    - `WellnessTaskItem` 및 Text 컴포저블의 count가 표시되기 시작합니다.
+
+![스크린샷 2024-03-06 오후 10 50 47](https://github.com/jiwon2724/TIL/assets/70135188/65bbf76f-4459-4eab-91a3-ff1fc57b7edc)
+
+
+- `WellnessTaskItem` 의 구성요소의 X를 누릅니다. 이때 리컴포지션이 발생하고, `showTask`가 false이므로 `WellnessTaskItem` 은 더 이상 표시되지 않습니다.
+
+![스크린샷 2024-03-06 오후 10 53 09](https://github.com/jiwon2724/TIL/assets/70135188/658725aa-9a38-4ef0-b6cd-24c398200ab6)
+
+
+## Compose에서 상태 복원
+
+- 구성 변경시 저장된 상태는 삭제됩니다.
+- `remember`를 사용하면 리컴포지션 간에 상태를 유지하는데 도움되지만, 구성 변경 간에는 유지되지 않습니다.
+- 이를 위해서 `remember`대신 `rememberSaveable`을 사용해야 합니다.
+- `rememberSaveable` 은 `Bundle`에 저장할 수 있는 모든 값을 자동으로 저장합니다.
+
+```kotlin
+@Composable
+fun WaterCounter(modifier: Modifier = Modifier) {
+        ...
+        var count by rememberSaveable { mutableStateOf(0) }
+        ...
+}
+```
+
+## 궁금한 부분
+
+- 컴포지션은 컴포저블 함수의 로직이라고 봐도 될까요?
+    - ex) 컴포저블 함수 안에 다양한 컴포저블 함수들이 있고, 상태를 변경하는 코드가 있는 경우에 해당 함수를 호출한다면 이것이 컴포지션?
+    - 아니면 컴포지션이라는 다른 무엇이 있을까요? ex) XML에서 View를 그리는 과정 등등..
+- 컴포즈에선 상수를 사용할 때만 XXXState를 사용을 안해야겠네요..?
+    - 상태 변경에 대해서 신경 안쓸거면!
+- remember를 사용할 땐 값을 저장 후 리컴포지션이 일어날까요?
+    - ex) count.value++
+    - 위 같은 경우에 count를 1증가 시키고 remember에 저장한 후 리컴포지션이 일어나는지!?
+- 위임 속성을 사용해서 remember를 사용하는 문법은 팀바팀 회바회?
+- 상태 기반 UI 섹션이 이해가 잘 안가요 ㅠ
+- *Clear water count* 버튼을 눌러 `count`를 0으로 재설정하면 리컴포지션이 발생합니다. `count`를 표시하는 `Text`와 `WellnessTaskItem`과 관련된 모든 코드가 호출되지 않고 컴포지션을 종료합니다.
+    - 여기서 왜 `WellnessTaskItem` 가 다시 렌더링 되는지 모르겠음..
+        - remember로 초기값을 설정하고 다시 그 값으로 할당하면 `remember` 객체를 삭제?
