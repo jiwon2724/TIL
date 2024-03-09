@@ -256,6 +256,306 @@ fun WaterCounter(modifier: Modifier = Modifier) {
         ...
 }
 ```
+## 상태 호이스팅
+
+- `remember`를 사용하여 객체를 저장하는 컴포저블 함수에는 내부 상태가 포함되며 이는 컴포저블 함수를 Stateful하게 만듭니다.
+    - 상태를 갖는 컴포저블은 **Stateful 컴포저블**이라고 합니다.
+- 이는 **호출자가 상태를 제어할 필요가 없고 상태를 직접 관리하지 않아도 상태를 사용할 수 있는 경우에 유용**합니다.
+    - 하지만 내부 상태를 갖는 컴포저블은 재사용 가능성이 적고 테스트하기가 더 어려운 경향이 있습니다.
+- 상태를 보유하지 않은 컴포저블을 **Stateless 컴포저블**이라고 합니다. 상태 호이스팅을 사용하면 Stateless 컴포저블을 쉽게 만들 수 있습니다.
+- 즉, 상태 호이스팅은 컴포저블을 Stateless로 만들기 위해 상태를 컴포저블의 호출자로 옮기는 패턴입니다.
+- 상태 호이스팅을 위한 일반적인 패턴은 상태 변수를 다음 두 개의 매개변수로 바꾸는 것입니다.
+    - `value: T` : 표시할 현재 값입니다.
+    - `onValueChange: (T) → Unit` : 값이 새 값 T로 변경되도록 요청하는 이벤트입니다.
+- 위 값은 수정할 수 있는 모든 상태를 나타냅니다.
+
+> 상태가 내려가고 이벤트가 올라가는 패턴을 단방향 데이터 흐름(UDF)이라고하며, 상태 호이스팅은 이 아키텍처를 Compose에서 구현하는 방법입니다.
+> 
+- 이러한 방식으로 끌어올린 상태에는 중요한 속성이 몇 가지 있습니다.
+    - 단일 소스 저장소 : 상태를 복제하는 대신 옮겼기 때문에 소스 저장소가 하나만 있습니다.
+        - 버그 방지에 도움이 됩니다.
+    - 공유 가능 : 끌어올린 상태를 여러 컴포저블과 공유할 수 있습니다.
+    - 분리(Decoupling) : Stateless 함수의 상태는 어디에든(ex : ViewModel) 저장할 수 있습니다.
+
+> Stateless : 상태를 소유하지 않는 컴포저블입니다. 즉, 새 상태를 보유하거나 정의하거나 수정하지 않습니다.
+
+Stateful : 시간이 지남에 따라 변할 수 있는 상태를 소유하는 컴포저블입니다.
+
+컴포저블이 가능한 적게 상태를 소유하고 적절한 경우 컴포저블 API에 상태를 노출하여 끌어올릴 수 있도록(호이스팅) 컴포저블을 디자인해야 합니다.
+> 
+
+### Stateful, Stateless 컴포저블 만들기
+
+```kotlin
+@Composable
+fun StatelessCounter(
+    count: Int, // value
+    onIncrement: () -> Unit, // onValueChange
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier.padding(16.dp)) {
+        if (count > 0) {
+            Text("You've had $count glasses.")
+        }
+        Button(
+            onClick = onIncrement,
+            enabled = count < 10,
+            modifier = Modifier.padding(top = 8.dp)
+        ) {
+            Text("Add one")
+        }
+    }
+}
+```
+
+- `StatelessCount`의 역할은 `count`를 표시하고 `count`를 늘릴 때 함수를 호출합니다.
+- `count` 의 상태와 `onIncrement` 람다를 전달합니다.
+
+```kotlin
+@Composable
+fun StatefulCounter(modifier: Modifier = Modifier) {
+    var count by rememberSaveable { mutableStateOf(0) }
+    StatelessCounter(
+        count = count,
+        onIncrement = { count++ },
+        modifier = modifier
+    )
+}
+```
+
+- `StatefulCounter` 는 상태를 소유합니다. count의 상태를 보유하고 `StatelessCounter` 함수를 호출할 때 이 상태를 수정합니다.
+
+> 상태 호이스팅을 사용할 때 이동 위치를 쉽게 파악할 수 있는 세 가지 규칙이 있습니다.
+
+1. 상태를 사용하는 모든 컴포저블의 가장 낮은 공통 부모(읽기)로 상태를 올려야 합니다.
+
+2. 상태는 최소한 변경될 수 있는 가장 높은 수준으로 올려야 합니다(쓰기).
+
+3. 동일한 이벤트에 대한 응답으로 두 상태가 변경되는 경우 동일한 레벨로 올려야 합니다.
+
+상태를 충분히 높은 수준으로 끌어올리지 않으면, UDF패턴을 따르기가 어렵거나 불가능 할 수 있습니다.
+> 
+
+### Stateless 컴포저블 재사용
+
+```kotlin
+@Composable
+fun StatefulCounter() {
+    var waterCount by remember { mutableStateOf(0) }
+    var juiceCount by remember { mutableStateOf(0) }
+
+    StatelessCounter(waterCount, { waterCount++ })
+    StatelessCounter(juiceCount, { juiceCount++ })
+}
+```
+
+- waterCount나 juiceCount의 상태가 변경될 때 리컴포지션이 일어납니다.
+- 리컴포지션 중에 Compose는 해당 상태를 읽는 함수만 식별하고 변경된 상태를 사용하는 함수의 리컴포지션만 트리거합니다.
+    - ex) `juiceCount++`가 호출되면 `StatelessCounter(juiceCount, { juiceCount++ })`만 리컴포지션 됩니다.
+
+> 호이스팅된 상태는 공유할 수 있으므로 불필요한 리컴포지션을 방지하고 재사용성을 높이려면 컴포저블에 필요한 상태만 전달해야 합니다.
+
+핵심 사항 : 컴포저블 디자인 권장사항은 필요한 매개변수만 전달하는 것입니다.
+> 
+
+## 목록으로 작업하기
+
+```kotlin
+// Stateless
+@Composable
+fun WellnessTaskItem(
+    taskName: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    onClose: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 16.dp),
+            text = taskName
+        )
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
+        IconButton(onClick = onClose) {
+            Icon(Icons.Filled.Close, contentDescription = "Close")
+        }
+    }
+}
+
+// Statefult
+@Composable
+fun WellnessTaskItem(taskName: String, modifier: Modifier = Modifier) {
+    var checkedState by remember { mutableStateOf(false) }
+
+    WellnessTaskItem(
+        taskName = taskName,
+        checked = checkedState,
+        onCheckedChange = { newValue -> checkedState = newValue },
+        onClose = {}, // we will implement this later!
+        modifier = modifier,
+    )
+}
+
+data class WellnessTask(
+    val id: Int,
+    val label: String,
+)
+
+@Composable
+fun WellnessTasksList(
+    modifier: Modifier = Modifier,
+    list: List<WellnessTask> = remember { getWellnessTasks() }
+) {
+    LazyColumn(
+        modifier = modifier
+    ) {
+        items(
+            items = list,
+        ) { task ->
+            WellnessTaskItem(
+                taskName = task.label,
+            )
+        }
+    }
+}
+
+private fun getWellnessTasks() = List(30) { i -> WellnessTask(i, "Task # $i") }
+
+@Composable
+fun WellnessScreen(modifier: Modifier = Modifier) {
+   Column(modifier = modifier) {
+       StatefulCounter()
+       WellnessTasksList()
+   }
+}
+
+```
+
+- LazyLayout을 사용해서 Task 목록을 만들었습니다.
+
+### LazyList에서 항목(item) 상태 복원
+
+```kotlin
+@Composable
+fun WellnessTaskItem(
+    taskName: String,
+    modifier: Modifier = Modifier
+) {
+    var checkedState by remember { mutableStateOf(false) }
+
+    WellnessTaskItem(
+        taskName = taskName,
+        checked = checkedState,
+        onCheckedChange = { newValue -> checkedState = newValue },
+        onClose = {}, // we will implement this later!
+        modifier = modifier,
+    )
+}
+```
+
+- `checkedState` 가 변경되면 `WellnessTaskItem` 의 인스턴스만 재구성되며 `LazyColumn`의 모든 `WellnessTaskItem` 인스턴스가 재구성되는 것은 아닙니다.
+- 항목이 컴포지션을 종료하면 기억된 상태가 삭제된다는 문제가 있습니다.
+- `LazyColumn` 에 있는 항목의 경우 스크롤하면서 항목을 지나치면 컴포지션을 완전히 종료하므로 체크된 항목의 선택이 해제되어 있습니다.
+- 위 경우 다시 `rememberSaveable`을 사용하면 됩니다.
+
+```kotlin
+var checkedState by rememberSaveable { mutableStateOf(false) }
+```
+
+## 관찰 가능한 MutableList
+
+- 리스트에서 Task를 삭제하는 동작을 추가해봅시다. 먼저 목록을 변경 가능한 목록으로 만들어야 합니다.
+- `ArrayList<T>` 또는 `mutableListOf` 를 사용하면 작동하지 않습니다.
+    - 위 유형은 항목이 변경되었고, UI의 리컴포지션을 예약한다고 Compose에 알리지 않습니다.
+- Compose에서 관찰할 수 있는 `MutableList` 인스턴스를 만들어야 합니다.
+    - 이 구조를 사용하면 Compose가 하목이 추가되거나 목록에서 삭제될 때 변경사항을 추적하여 리컴포지션 할 수 있습니다.
+
+```kotlin
+@Composable
+fun WellnessScreen(modifier: Modifier = Modifier) {
+   Column(modifier = modifier) {
+       StatefulCounter()
+
+       val list = remember { getWellnessTasks().toMutableStateList() }
+       WellnessTasksList(list = list, onCloseTask = { task -> list.remove(task) })
+   }
+}
+
+private fun getWellnessTasks() = List(30) { i -> WellnessTask(i, "Task # $i") }
+```
+
+> mutableStateListOf를 사용하여 목록(List)을 구현할 수 있습니다. 그러나 이를 사용하는 방식으로 인해 예기치 않은 리컴포지션이 발생하고 UI 성능이 최적화되지 않을 수 있습니다.
+
+목록을 정의하고 작업을 다른 작업에 추가하면 모든 리컴포지션에 중복된 항목이 추가됩니다.
+> 
+> 
+> `// Don't do this!`
+> 
+> `val list = remember { mutableStateListOf<WellnessTask>()` `}`
+> 
+> `list.addAll(getWellnessTasks())`
+> 
+> 단일 작업으로 초깃값을 사용하여 만든 후, 다음과 같이 remember 함수에 전달합니다.
+> 
+> `// Do this instead. Don't need to copy`
+> 
+> `val list = remember {`
+> 
+> `mutableStateListOf<WellnessTask>().apply {` `addAll(getWellnessTasks()) }`
+> 
+> `}`
+> 
+
+## ViewModel의 상태
+
+- UI 상태는 화면에 표시할 내용을 설명하지만 앱의 로직은 앱의 동작 방식을 설명하고 상태 변경에 반응해야 합니다.
+- 로직 유형에는 두가지가 있습니다.
+    - UI 로직 : 화면에 상태 변경을 표시하는 방법과 관련이 있습니다.
+        - ex) 탐색 로직 또는 스낵바 표시
+    - 비즈니스 로직 : 상태 변경 시 실행할 작업입니다. 대개 비즈니스 레이어나 데이터 영역에 배치되고 UI 레이어에는 배치되지 않습니다.
+        - ex) 결제하기, 사용자 환경설정 저장
+
+> ViewModel은 컴포지션의 일부가 아닙니다. 따라서 메모리 누수가 발생할 수 있으므로 컴포저블에서 만든 상태를 보유해서는 안됩니다.
+> 
+
+### ViewModel로 마이그레이션
+
+- 구성 가능한 함수에서 상태를 직접 관리하는 방법을 알아봤지만, UI 로직과 비즈니스 로직을 UI 상태와 분리하여 ViewModel로 옮기는 것이 좋습니다.
+
+```kotlin
+class WellnessViewModel : ViewModel() {
+    private val _task = getWellnessTasks().toMutableStateList()
+    val task: List<WellnessTask>
+        get() = _task
+
+    fun remove(item: WellnessTask) {
+        _task.remove(item)
+    }
+}
+
+private fun getWellnessTasks() = List(30) { i -> WellnessTask(i, "Task # $i") }
+```
+
+- `viewModel()` 함수를 호출하여 컴포저블에서 ViewModel을 참조할 수 있습니다.
+
+```kotlin
+implementation("androidx.lifecycle:lifecycle-viewmodel-compose:{latest_version}")
+```
+
+- 선택된 상태와 로직을 ViewModel로 이전하는 것이 좋습니다. 이렇게 하면 모든 상태가 ViewModel에서 관리되므로 코드가 더 간단해지고 테스트하기 쉬워집니다.
+
+> ViewModel 인스턴스를 다른 컴포저블에 전달하는 것은 좋지 않습니다. 필요한 데이터와 필수 로직을 실행하는 함수만 매개변수로 전달해야 합니다.
+
+<img width="686" alt="스크린샷 2024-03-09 오후 4 02 10" src="https://github.com/jiwon2724/TIL/assets/70135188/6ac35e82-3220-41f8-b83b-5cf08c79c375">
+
 
 ## 궁금한 부분
 
@@ -272,3 +572,6 @@ fun WaterCounter(modifier: Modifier = Modifier) {
 - *Clear water count* 버튼을 눌러 `count`를 0으로 재설정하면 리컴포지션이 발생합니다. `count`를 표시하는 `Text`와 `WellnessTaskItem`과 관련된 모든 코드가 호출되지 않고 컴포지션을 종료합니다.
     - 여기서 왜 `WellnessTaskItem` 가 다시 렌더링 되는지 모르겠음..
         - remember로 초기값을 설정하고 다시 그 값으로 할당하면 `remember` 객체를 삭제?
+- 호이스팅은 그냥 상태를 매개변수로 넘겨줘서 사용하는 느낌일까요?
+    - “상태를 끌어올린다”의 정의가 아리송합니다
+- 호이스팅의 이동위치를 파악하는 세 가지 규칙 중 공통적인 부분은 사용하려는 상태에 맞게 잘 사용해라 느낌?
