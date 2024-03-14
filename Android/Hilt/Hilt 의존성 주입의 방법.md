@@ -110,3 +110,85 @@ class Foo @Inject construct(bar: Bar) { ... }
 - 생성자에 `@Inject` 을 마킹하는 경우 컴포넌트로부터 파라미터(Bar)를 주입 받기도 하지만, 주입 받음과 동시에 주입 받는 대상 즉, `Foo` 클래스도 컴포넌트에 바인딩 됩니다.
 - 어딘가에서 `Foo`의존성을 요청하면, 주입이 가능해집니다.
 - 즉, @Inject 애노테이션은 하나의 마킹으로 두 가지 행위를 동시에 하고있습니다.
+
+## Hilt 의존성 주입 예제
+
+> 생성자 주입은 주입과 동시에 대상 자체가 바인딩 됩니다.
+> 
+
+## 필드 주입
+
+```kotlin
+// 컴파일 타임에 의존성 바인딩
+// 주입과 동시에 바인딩됩니다. Foo class는 생성자 매개변수가 없으므로, Foo만 바인딩 됩니다.
+class Foo @Inject constructor() { .. } 
+
+@AndroidEntryPoint
+class MainActivty : ...() {
+    @Inject lateinit var foo: Foo // Foo 의존성 요청
+			
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(binding.root)
+        assert(this::foo.isInitialized)
+    }
+}
+```
+
+- 컴파일 타임에 컴포넌트에 `Foo`라는 의존성이 바인딩 됩니다.
+
+## 생성자 주입
+
+```kotlin
+class Foo @Inject constructor(val bar: Bar) { }
+class Bar @Inject constructor() { }
+
+@AndroidEntryPoint
+class MainActivty : ...() {
+    @Inject lateinit var foo: Foo
+    @Inject lateinit var bar: Bar
+			
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(binding.root)
+        assert(this::foo.isInitialized)
+        assert(this::bar.isInitialized)
+        assert(foo.bar != null)
+    }
+}
+```
+
+- 컴파일 타임에 `Bar` 의존성은 Foo 클래스의 생성자인 `bar`에 바인딩 됩니다.
+- `@Inject lateinit var bar: Bar`
+    - `Bar` 의존성을 요청합니다.
+
+## 메서드 주입
+
+```kotlin
+class Foo @Inject constructor(val bar: Bar) { } 
+class Bar @Inject constructor() { }
+
+@AndroidEntryPoint
+class MainActivty : ...() {
+    lateinit var foo: Foo
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(binding.root)
+        assert(this::foo.isInitialized)
+    }
+    
+    @Inject
+    fun injectFoo(foo: Foo) {
+        this.foo = foo
+    }
+}
+```
+
+- `super.onCreate` 호출 이후에 의존성 주입이 `injectFoo` 에서 발생하게 됩니다.
+
+## 요약
+
+- @Inject 애노테이션으로 의존성을 요청할 수 있다.
+- 의존성 주입은 크게 생성자 주입, 필드 주입, 메서드 주입이 있다.
+- 생성자 주입의 경우 주입과 동시에 주입받는 대상 자체가 의존성 그래프에 바인딩 된다.
