@@ -89,3 +89,61 @@ abstract class EngineModule {
 - `@Binds` 메서드는 반드시 파라미터 1개만을 가집니다.
 - 파라미터 타입이 반환타입의 서브타입이어야 합니다.
 - Scope 및 Qualifier 애노테이션과 함께 사용할 수 있습니다.
+
+## @BindsOptionalOf
+
+![스크린샷 2024-03-26 오후 10 57 21](https://github.com/jiwon2724/TIL/assets/70135188/689256b5-0ea9-49bc-a0de-cbf981808be8)
+
+
+- `@BindsOptionalOf` 애노테이션은 오브젝트 그래프에 바인딩 되어있을 수도 있고, 없을 수도 있습니다.
+    - 즉, 바인딩 되어 있지 않을 가능성이 있는 의존성을 요청할 때(옵셔널 바인딩)
+- 옵셔널 바인딩을 사용하면, 바인딩 되지 않았더라도, 컴파일이 통과하게 됩니다.
+    - 위 이미지에선 클라이언트가 `Optional<Foo>`를 요청한다면, `Foo`의 바인딩 여부와 관계없이 Hilt의 컴파일 과정을 통과합니다.
+
+## @BindsOptionalOf 바인딩
+
+```kotlin
+@Module
+@IntallIn(SingletonComponent::class)
+abstract class FooModule {
+    @BindsOptionalOf
+    abstract fun optionalFoo(): Foo
+}
+```
+
+- 옵셔널 바인딩 메서드의 반환 타입으로 옵셔널 바인딩 하고자하는 타입을 선언하면 됩니다.
+
+## Optional<T> 요청
+
+```kotlin
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var optionalFoo: Optional<Foo>
+}
+
+class Bar @Inject constructor(optionalFoo: Optional<Foo>)
+
+@Provides
+fun provideString(optionalFoo: Optional<Foo>): String { .. }
+```
+
+- 옵셔널 바인딩도 마찬가지로 바인딩된 의존성들은 똑같이 의존성 주입을 요청하고 주입을 받을 수 있습니다.
+
+## Optional<T> 주요 메서드
+
+- `isPresent()`
+    - 바인딩 된 경우 true를 반환합니다.
+- `get()`
+    - 바인딩 된 의존성 T를 반환합니다
+    - 바인딩 되지 않은 경우 예외를 던집니다.
+    - orElse 류의 메서드 호출로 안전하게 접근할 수도 있습니다.
+
+## @BindsOptionalOf 제약조건
+
+- `@BindsOptionalOf` 는 반드시 모듈 내의 `abstract` 메서드에 추가해야합니다.
+- `@BindsOptionalOf` 메서드는 반드시 void 타입을 반환하면 안됩니다.
+    - 반환 타입이 반드시 있어야 합니다.
+- `@BindsOptionalOf` 메서드는 파라미터를 가질 수 없습니다.
+- 생성자 바인딩 된 의존성은 항상 `present` 상태이므로, 이 경우 해당 의존성은 옵셔널 바인딩이 불가능합니다.
+- `Optional<Provider<T>>`, `Optional<Lazy<T>>`, `Optional<Provider<Lazy<T>>>` 형태로 주입이 가능합니다.
