@@ -60,3 +60,115 @@ class Bar @Inejct constructor(val strings: Set<String>) {
     }
 }
 ```
+
+## Map 멀티 바인딩
+
+- 동일한 타입의 의존성들을 Map형태로 관리합니다.
+    - Key, Value로 관리하므로, 의존성을 관계를 맺을 Key가 반드시 필요합니다.
+
+## Map 멀티 바인딩을 위한 기본 키
+
+- @StringKey
+- @IntKey
+- @LongKey
+- @ClassKey
+
+## Map 멀티 바인딩 with @IntoMap
+
+```kotlin
+@Module
+@InstallIn(SingletonComponent::class)
+object MyModule {
+    @Provides
+    @IntoMap @StringKey("foo")
+    fun provideFooValue(): Long {
+        return 100L
+    }
+		
+    @Provides
+    @IntoMap @ClassKey(Bar::class)
+    fun provideBarValue(): String {
+        return "value for bar"
+    }
+}
+```
+
+- `String` 타입의 Key, `Long` 타입의 Value를 갖습니다.
+- `Class` 타입의 Key, `String` 타입의 Value를 갖습니다.
+
+> 즉, Map<String, Long>과 Map<Class<*>, Long>이 Hilt Compoent에 바인딩 됩니다.
+”foo” : 100L, Class<Bar> : “value for bar”
+> 
+
+## 멀티 바인딩 된 Map 주입
+
+```kotlin
+@AndroidEntryPoint
+class MainActivity : ComponentActivity {
+    @Inject
+    lateinit var map: Map<String, Long>
+		
+    @Inject
+    lateinit var map2: Map<Class<*>, String>
+		
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        map1["foo"].toString() // 100
+        map2[Bar::class.java] // value for Bar
+    }
+}
+```
+
+- `Map`의 제네릭 타입을 체크하고 주입이 되기 때문에, 제네릭 타입을 잘 신경써야 합니다.
+
+## @MapKey
+
+```kotlin
+enum class MyEnum {
+    ABC, DEF
+}
+
+@MapKey
+annotation class MyEnumKey(val value: MyEnum)
+
+@Module
+@InstallIn(SingletonComponent::class)
+object MyModule {
+    @Provides
+    @IntoMap
+    @MyEnumKey(MyEnum.ABC)
+    fun provideABCValue(): String {
+        return "value for ABC"
+    }
+}
+
+class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var map: Map<MyEnum, String>
+		
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        map[MyEnum.ABC] // value for ABC
+    }
+}
+```
+
+- 해당 애노테이션으로 커스텀 키를 만들 수 있습니다.
+
+## @Multibinds
+
+```kotlin
+@Module
+@Install(SingletonComponent::class)
+abstract class MyModuleA {
+    @Multibinds
+    abstract fun fooSet(): Set<Foo>
+		
+    @Multibinds
+    abstract fun fooMap(): Map<String, Foo>
+}
+```
+
+- 하나 이상 의존성을 생성하고, 멀티 바인딩 해야지만 Map, Set이 생성 되었지만, 추상적으로 빈 Map, Set을 생성하기 위해 멀티 바인딩을 구현하려면 `@Multibinds` 애노테이션을 사용하면 됩니다.
+- `@Multibinds` 애노테이션을 사용하면 컴파일 타임에 의존성이 없더라도, 에러 없이 작업을 수행할 수 있습니다.
+- 즉, 바인딩 여부가 확실하지 않은 경우 컴파일 타임에 빈 컬렉션을 제공합니다.
