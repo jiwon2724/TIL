@@ -79,5 +79,5 @@ base.setPackage("some_package");
 PendingIntent pi = PendingIntent.getService(this, 0, base, 0);
 ```
 
-1. PendingIntent가 신뢰할 수 있는 구성요소에만 전달되는지 확인합니다.
-2. `FLAG_IMMUTABLE`(SDK 23에 추가됨)을 사용하여 PendingIntent를 생성합니다. 앱이 SDK 22 이하를 실행하는 기기에서도 실행되는 경우 PendingIntent 생성을 강화하면서 이전 옵션을 적용하는 것이 좋습니다.
+2. PendingIntent가 신뢰할 수 있는 구성요소에만 전달되는지 확인합니다.
+3. `FLAG_IMMUTABLE`(SDK 23에 추가됨)을 사용하여 PendingIntent를 생성합니다. 앱이 SDK 22 이하를 실행하는 기기에서도 실행되는 경우 PendingIntent 생성을 강화하면서 이전 옵션을 적용하는 것이 좋습니다.
