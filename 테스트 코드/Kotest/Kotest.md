@@ -10,10 +10,19 @@
 
 ## Kotest 시작하기
 ```kotlin
-testImplementation("io.kotest:kotest-runner-junit5:5.9.1") // 2024.06.08 기준 최신버전
-testImplementation("org.jetbrains.kotlin:kotlin-reflect:1.9.23") // Kotlin reflection
+android {
+    tasks.withType<Test>().configureEach {
+        useJUnitPlatform()
+    }
+}
+
+dependencies {
+    testImplementation("io.kotest:kotest-runner-junit5:5.9.1") // 2024.06.08 기준 최신버전
+    testImplementation("org.jetbrains.kotlin:kotlin-reflect:1.9.23") // Kotlin reflection
+}
 ```
 - build.gradle에 의존성을 추가해줍니다.
+- kotest는 Junit 플랫폼에서 실행되기 때문에, `useJUnitPlatform()`을 추가합니다.
 
 # Kotest 명세 스타일
 - 다양한 명세 스타일을 제공하여 테스트를 보다 직관적이고 유연하게 작성할 수 있도록 합니다.
