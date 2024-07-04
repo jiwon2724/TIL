@@ -130,3 +130,41 @@ class MyBehaviorSpec : BehaviorSpec({
   - 테스트 결과를 검증합니다.
   - When 블록에서 수행한 동작의 결과를 확인하고 검증합니다.
   - 기대하는 결과가 실제로 나왔는지 확인합니다.
+  - 
+
+### beforeSpec, beforeTest
+- kotest는 테스트를 준비하고 실행 후 정리하는 여러 기능을 제공합니다.
+```kotlin
+class MySpec : StringSpec({
+    beforeSpec {
+        println("beforeSpec call!!")
+    }
+
+    beforeTest {
+        println("beforeTest call!!")
+    }
+
+    "테스트 케이스1" {
+        println("테스트1")
+    }
+
+    "테스트 케이스2" {
+        println("테스트2")
+    }
+
+    "테스트 케이스3" {
+        println("테스트3")
+    }
+})
+
+실행결과
+beforeSpec call!!
+beforeTest call!!
+테스트1
+beforeTest call!!
+테스트2
+beforeTest call!!
+테스트3
+```
+- beforeSpec은 스펙(spec) 전체가 실행되기 전에 한 번 실행되는 블록입니다. 스펙은 Kotest에서 하나의 테스트 단위를 의미하며, 여러 테스트 케이스(test case)를 포함할 수 있습니다. beforeSpec은 해당 스펙의 모든 테스트가 실행되기 전에 공통으로 설정해야 할 초기화 작업을 수행하는 데 사용됩니다.
+- beforeTest는 각 테스트 케이스가 실행되기 전에 실행되는 블록입니다. 이는 각 테스트 케이스마다 반복적으로 실행되며, 테스트 케이스별로 초기화가 필요한 작업을 수행할 때 사용됩니다.
